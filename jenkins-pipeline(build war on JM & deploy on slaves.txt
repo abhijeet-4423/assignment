@@ -1,0 +1,72 @@
+pipeline{
+    agent {
+        label {
+            label "built-in"
+            customWorkspace "/mnt/build-tool/"
+        }
+    }
+    stages {
+        stage ("buil-war"){
+            steps {
+                sh "rm -rf *"
+                sh "git clone https://github.com/abhijeet-4423/game-of-life.git"
+                dir ("/mnt/build-tool/game-of-life/"){
+                    sh "mvn clean install"
+                }
+            }
+        }
+        stage ("clear wsp"){
+            parallel {
+                stage ("wsp slave-1 clear"){
+                    agent {
+                        label {
+                            label "slave-1"
+                            customWorkspace "/mnt/"
+                        }
+                    }    
+                    steps {
+                        //sh "sudo rm -rf /mnt/apache-tomcat-9.0.71/webapps/*.war"
+                        echo "hello"
+                    }
+                }
+                stage ("wsp slave-2 clear"){
+                    agent {
+                        label{
+                            label "slave-2"
+                            customWorkspace "/mnt/"
+                        }
+                    }
+                    steps {
+                        //sh "sudo rm -rf /mnt/apache-tomcat-9.0.71/webapps/*.war"
+                        echo "hello"
+                    }
+                }
+            }
+        }
+        stage ("deploy-war"){
+            agent {
+                label {
+                    label "built-in"
+                    customWorkspace "/mnt/"
+                }
+            }
+            steps {
+                sh "scp -i test-1.pem /mnt/build-tool/game-of-life/gameoflife-web/target/gameoflife.war ec2-user@172.31.34.145:/mnt/apache-tomcat-9.0.71/webapps/"
+            }
+        }    
+                
+        stage ("slave-2"){
+            agent {
+                label {
+                    label "built-in"
+                    customWorkspace "/mnt/"
+                }    
+            }
+            steps {
+            sh "scp -i test-1.pem /mnt/build-tool/game-of-life/gameoflife-web/target/gameoflife.war ec2-user@172.31.36.160:/mnt/apache-tomcat-9.0.71/webapps/"
+            }
+        }
+            
+        
+    }
+}
