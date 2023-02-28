@@ -1,0 +1,71 @@
+pipeline {
+    agent {
+        label {
+            label "built-in"
+            customWorkspace "/mnt/war"
+        }
+    }
+    stages {
+        stage ("build-war"){
+            steps {
+                sh "rm -rf *"
+                sh "git clone https://github.com/abhijeet-4423/game-of-life.git"
+                dir ("game-of-life/"){
+                    sh "mvn clean install"
+                }
+            }
+        }
+        stage ("copy-war"){
+            parallel {
+                stage ("copy-1"){
+                    agent {
+                        label {
+                            label "built-in"
+                            customWorkspace "/mnt"
+                        }
+                    }
+                    steps {
+                        sh "scp -i test-1.pem /mnt/war/game-of-life/gameoflife-web/target/gameoflife.war ec2-user@172.31.33.163:/mnt/war/"
+                    }
+                }
+                stage ("copy-2"){
+                    agent {
+                        label {
+                            label "built-in"
+                            customWorkspace "/mnt"
+                        }
+                    }
+                    steps {
+                        sh "scp -i test-1.pem /mnt/war/game-of-life/gameoflife-web/target/gameoflife.war ec2-user@172.31.43.227:/mnt/war/"
+                    }
+                }
+            }
+        }
+        stage ("deploy") {
+            parallel {
+                stage ("slave-1"){
+                    agent {
+                        label{
+                            label "slave-1"
+                            customWorkspace "/mnt/war"
+                        }
+                    }
+                    steps {
+                        sh "docker cp /mnt/war/gameoflife.war tomcat:/usr/local/tomcat/webapps/"
+                    }
+                }
+                stage ("slave-2"){
+                    agent {
+                        label{
+                            label "slave-2"
+                            customWorkspace "/mnt/war"
+                        }
+                    }
+                    steps {
+                        sh "docker cp /mnt/war/gameoflife.war tomcat:/usr/local/tomcat/webapps/"
+                    }
+                }
+            }
+        }
+    }
+}
