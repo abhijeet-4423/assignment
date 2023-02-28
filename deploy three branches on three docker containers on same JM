@@ -1,0 +1,50 @@
+pipeline{
+    agent {
+        label {
+            label "built-in"
+            customWorkspace "/mnt/23Q1/"
+        }
+    }
+    stages {
+        stage ("parallel"){
+            parallel {
+                stage ("23Q1") {
+                    steps {
+                        sh "rm -rf *"
+                        sh "git clone https://github.com/abhijeet-4423/vel.git -b 23Q1"
+                        sh "chmod -R 744 vel"
+                        sh "docker cp vel/index.html httpd-1:/usr/local/apache2/htdocs/"
+                    }
+                }
+                stage ("23Q2") {
+                    agent {
+                        label {
+                            label "built-in"
+                            customWorkspace "/mnt/23Q2/"
+                        }
+                    }
+                    steps {
+                        sh "rm -rf *"
+                        sh "git clone https://github.com/abhijeet-4423/vel.git -b 23Q2"
+                        sh "chmod -R 744 vel"
+                        sh "docker cp vel/index.html httpd-2:/usr/local/apache2/htdocs/"
+                    }
+                }
+                stage ("23Q3") {
+                    agent {
+                        label{
+                            label "built-in"
+                            customWorkspace "/mnt/23Q3/"
+                        }
+                    }
+                    steps {
+                        sh "rm -rf *"
+                        sh "git clone https://github.com/abhijeet-4423/vel.git -b 23Q3"
+                        sh "chmod -R 744 vel"
+                        sh "docker cp vel/index.html httpd-3:/usr/local/apache2/htdocs/"
+                    }
+                }
+            }
+        }
+    }
+}
