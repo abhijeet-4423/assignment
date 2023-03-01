@@ -29,7 +29,7 @@ pipeline {
                 dir ("docker/"){
                     sh "docker build -t tomcat:1 ."
                 }
-                sh "docker run -itdp 8080:8080 -v /mnt/gameoflife:/usr/local/tomcat/webapps --name mytomcat tomcat:1"
+                sh "docker run -itdp 8080:8080 -v /mnt/gameoflife:/usr/local/tomcat/webapps tomcat:1"
             }
         }
     }
